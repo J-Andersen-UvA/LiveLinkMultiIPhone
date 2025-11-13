@@ -1,11 +1,11 @@
-#include "LLFConnections.h"
+#include "LLFDeviceRegistry.h"
 
-void ULLFConnections::SetActiveIPhone(FLLFDevice DeviceInfo)
+void ULLFDeviceRegistry::SetActiveIPhone(FLLFDevice DeviceInfo)
 {
     SetActiveIPhone(DeviceInfo.DeviceID);
 }
 
-void ULLFConnections::SetActiveIPhone(FString DeviceName)
+void ULLFDeviceRegistry::SetActiveIPhone(FString DeviceName)
 {
     FLLFDevice Device = FindDeviceByName(DeviceName);
 
@@ -19,7 +19,7 @@ void ULLFConnections::SetActiveIPhone(FString DeviceName)
     }
 }
 
-void ULLFConnections::SetActiveIPhone(FName DeviceID)
+void ULLFDeviceRegistry::SetActiveIPhone(FName DeviceID)
 {
     // Check if device exists in discovered list
     for (const FLLFDevice& Device : Devices)
@@ -35,7 +35,7 @@ void ULLFConnections::SetActiveIPhone(FName DeviceID)
     UE_LOG(LogTemp, Warning, TEXT("Device %s not found in discovered devices"), *DeviceID.ToString());
 }
 
-void ULLFConnections::AddDevice(FLLFDevice Device)
+void ULLFDeviceRegistry::AddDevice(FLLFDevice Device)
 {
     // Check if device already exists
     for (const FLLFDevice& ExistingDevice : Devices)
@@ -51,7 +51,7 @@ void ULLFConnections::AddDevice(FLLFDevice Device)
     UE_LOG(LogTemp, Log, TEXT("Added device: %s"), *Device.DeviceID.ToString());
 }
 
-void ULLFConnections::RemoveDevice(FName DeviceID)
+void ULLFDeviceRegistry::RemoveDevice(FName DeviceID)
 {
     int32 RemovedCount = Devices.RemoveAll([DeviceID](const FLLFDevice& Device)
     {
@@ -75,7 +75,7 @@ void ULLFConnections::RemoveDevice(FName DeviceID)
     }
 }
 
-void ULLFConnections::RemoveAllDevices()
+void ULLFDeviceRegistry::RemoveAllDevices()
 {
     int32 DeviceCount = Devices.Num();
     Devices.Empty();
@@ -85,7 +85,7 @@ void ULLFConnections::RemoveAllDevices()
     OnActiveIPhoneChanged.Broadcast(NAME_None);
 }
 
-void ULLFConnections::RemoveNonActiveDevices()
+void ULLFDeviceRegistry::RemoveNonActiveDevices()
 {
     if (ActiveDevice.DeviceID == NAME_None)
     {
@@ -102,7 +102,7 @@ void ULLFConnections::RemoveNonActiveDevices()
     UE_LOG(LogTemp, Log, TEXT("Removed %d non-active devices"), RemovedCount);
 }
 
-void ULLFConnections::RemoveActiveDevice()
+void ULLFDeviceRegistry::RemoveActiveDevice()
 {
     if (ActiveDevice.DeviceID == NAME_None)
     {
@@ -114,7 +114,7 @@ void ULLFConnections::RemoveActiveDevice()
     RemoveDevice(ActiveID);
 }
 
-FLLFDevice ULLFConnections::FindDeviceByName(FString DeviceName)
+FLLFDevice ULLFDeviceRegistry::FindDeviceByName(FString DeviceName)
 {
     for (const FLLFDevice& Device : Devices)
     {

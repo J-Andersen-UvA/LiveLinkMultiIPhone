@@ -2,7 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "UObject/NoExportTypes.h"
-#include "LLFConnections.generated.h"
+#include "LLFDeviceRegistry.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnActiveIPhoneChanged, FName, DeviceID);
 
@@ -25,7 +25,7 @@ struct FLLFDevice
 };
 
 UCLASS(BlueprintType, Blueprintable)
-class LIVELINKMULTIIPHONE_API ULLFConnections : public UObject
+class LIVELINKMULTIIPHONE_API ULLFDeviceRegistry : public UObject
 {
     GENERATED_BODY()
 
