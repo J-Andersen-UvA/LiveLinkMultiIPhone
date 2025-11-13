@@ -53,5 +53,17 @@ public:
     void AddDevice(FLLFDevice Device);
 
     UFUNCTION(BlueprintCallable, Category = "MultiIphoneLiveLink")
+    void RemoveDevice(FName DeviceID);
+
+    UFUNCTION(BlueprintCallable, Category = "MultiIphoneLiveLink")
+    void RemoveAllDevices();
+
+    UFUNCTION(BlueprintCallable, Category = "MultiIphoneLiveLink")
+    void RemoveNonActiveDevices();
+
+    UFUNCTION(BlueprintCallable, Category = "MultiIphoneLiveLink")
+    void RemoveActiveDevice();
+
+    UFUNCTION(BlueprintCallable, Category = "MultiIphoneLiveLink")
     FLLFDevice FindDeviceByName(FString DeviceName);
 };

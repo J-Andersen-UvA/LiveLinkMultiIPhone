@@ -51,6 +51,69 @@ void ULLFConnections::AddDevice(FLLFDevice Device)
     UE_LOG(LogTemp, Log, TEXT("Added device: %s"), *Device.DeviceID.ToString());
 }
 
+void ULLFConnections::RemoveDevice(FName DeviceID)
+{
+    int32 RemovedCount = Devices.RemoveAll([DeviceID](const FLLFDevice& Device)
+    {
+        return Device.DeviceID == DeviceID;
+    });
+
+    if (RemovedCount > 0)
+    {
+        UE_LOG(LogTemp, Log, TEXT("Removed device: %s"), *DeviceID.ToString());
+        
+        // If we removed the active device, clear it
+        if (ActiveDevice.DeviceID == DeviceID)
+        {
+            ActiveDevice = FLLFDevice();
+            OnActiveIPhoneChanged.Broadcast(NAME_None);
+        }
+    }
+    else
+    {
+        UE_LOG(LogTemp, Warning, TEXT("Device %s not found for removal"), *DeviceID.ToString());
+    }
+}
+
+void ULLFConnections::RemoveAllDevices()
+{
+    int32 DeviceCount = Devices.Num();
+    Devices.Empty();
+    ActiveDevice = FLLFDevice();
+    
+    UE_LOG(LogTemp, Log, TEXT("Removed all devices (%d total)"), DeviceCount);
+    OnActiveIPhoneChanged.Broadcast(NAME_None);
+}
+
+void ULLFConnections::RemoveNonActiveDevices()
+{
+    if (ActiveDevice.DeviceID == NAME_None)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("No active device set, cannot remove non-active devices"));
+        return;
+    }
+
+    FName ActiveID = ActiveDevice.DeviceID;
+    int32 RemovedCount = Devices.RemoveAll([ActiveID](const FLLFDevice& Device)
+    {
+        return Device.DeviceID != ActiveID;
+    });
+
+    UE_LOG(LogTemp, Log, TEXT("Removed %d non-active devices"), RemovedCount);
+}
+
+void ULLFConnections::RemoveActiveDevice()
+{
+    if (ActiveDevice.DeviceID == NAME_None)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("No active device to remove"));
+        return;
+    }
+
+    FName ActiveID = ActiveDevice.DeviceID;
+    RemoveDevice(ActiveID);
+}
+
 FLLFDevice ULLFConnections::FindDeviceByName(FString DeviceName)
 {
     for (const FLLFDevice& Device : Devices)
