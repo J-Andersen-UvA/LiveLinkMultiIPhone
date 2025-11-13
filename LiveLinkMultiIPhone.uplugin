@@ -1,0 +1,14 @@
+﻿{
+    "FileVersion": 3,
+    "Version": 1,
+    "VersionName": "1.0",
+    "FriendlyName": "LiveLinkMultiIPhone",
+    "Description": "LiveLinkMultiIPhone plugin",
+    "Category": "Custom",
+    "Modules": [
+        {
+            "Name": "LiveLinkMultiIPhone",
+            "Type": "Editor"
+        }
+    ]
+}
