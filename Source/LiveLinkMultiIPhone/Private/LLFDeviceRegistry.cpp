@@ -5,9 +5,9 @@ void ULLFDeviceRegistry::SetActiveIPhone(FLLFDevice DeviceInfo)
     SetActiveIPhone(DeviceInfo.DeviceID);
 }
 
-void ULLFDeviceRegistry::SetActiveIPhone(FString DeviceName)
+void ULLFDeviceRegistry::SetActiveIPhone(FString SubjectName)
 {
-    FLLFDevice Device = FindDeviceByName(DeviceName);
+    FLLFDevice Device = FindDeviceBySubjectName(SubjectName);
 
     if (Device.DeviceID != NAME_None)
     {
@@ -15,12 +15,16 @@ void ULLFDeviceRegistry::SetActiveIPhone(FString DeviceName)
     }
     else
     {
-        UE_LOG(LogTemp, Warning, TEXT("Device with name %s not found"), *DeviceName);
+        UE_LOG(LogTemp, Warning, TEXT("Device with name %s not found"), *SubjectName);
     }
 }
 
 void ULLFDeviceRegistry::SetActiveIPhone(FName DeviceID)
 {
+    // Store previous active device
+    FLLFDevice PreviousDevice = ActiveDevice;
+    bool bHadPreviousDevice = (PreviousDevice.DeviceID != NAME_None);
+
     // Check if device exists in discovered list
     for (const FLLFDevice& Device : Devices)
     {
@@ -28,6 +32,19 @@ void ULLFDeviceRegistry::SetActiveIPhone(FName DeviceID)
         {
             ActiveDevice = Device;
             OnActiveIPhoneChanged.Broadcast(DeviceID);
+
+            if (bAutoManageLiveLinkSubjects)
+            {
+                // Deactivate previous device first (if exists and different)
+                if (bHadPreviousDevice && PreviousDevice.DeviceID != DeviceID)
+                {
+                    OnDeviceDeactivated.Broadcast(PreviousDevice);
+                }
+                
+                // Activate new device
+                OnDeviceActivated.Broadcast(Device);
+            }
+            
             return;
         }
     }
@@ -42,7 +59,6 @@ void ULLFDeviceRegistry::AddDevice(FLLFDevice Device)
     {
         if (ExistingDevice.DeviceID == Device.DeviceID)
         {
-            UE_LOG(LogTemp, Warning, TEXT("Device %s already discovered"), *Device.DeviceID.ToString());
             return;
         }
     }
@@ -114,11 +130,11 @@ void ULLFDeviceRegistry::RemoveActiveDevice()
     RemoveDevice(ActiveID);
 }
 
-FLLFDevice ULLFDeviceRegistry::FindDeviceByName(FString DeviceName)
+FLLFDevice ULLFDeviceRegistry::FindDeviceBySubjectName(FString SubjectName)
 {
     for (const FLLFDevice& Device : Devices)
     {
-        if (Device.DeviceName == DeviceName)
+        if (Device.SubjectName == SubjectName)
         {
             return Device;
         }

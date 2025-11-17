@@ -8,7 +8,13 @@
     "Modules": [
         {
             "Name": "LiveLinkMultiIPhone",
-            "Type": "Editor"
+            "Type": "Runtime",
+            "LoadingPhase": "Default"
+        },
+        {
+            "Name": "LiveLinkMultiIPhoneEditor",
+            "Type": "Editor",
+            "LoadingPhase": "Default"
         }
     ]
 }

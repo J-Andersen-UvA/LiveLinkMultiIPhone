@@ -6,8 +6,12 @@
 
 ILiveLinkClient* ULLFSourceDiscovery::GetLiveLinkClient()
 {
-    IModuleInterface* Module = FModuleManager::Get().GetModule("LiveLink");
-    if (Module)
+    if (!FModuleManager::Get().IsModuleLoaded("LiveLink"))
+    {
+        FModuleManager::Get().LoadModule("LiveLink");
+    }
+
+    if (IModularFeatures::Get().IsModularFeatureAvailable(ILiveLinkClient::ModularFeatureName))
     {
         return &IModularFeatures::Get().GetModularFeature<ILiveLinkClient>(ILiveLinkClient::ModularFeatureName);
     }
@@ -34,12 +38,16 @@ TArray<FLLFDevice> ULLFSourceDiscovery::GetAvailableIPhones()
     {
         if (IsIPhoneSource(SourceGuid, Client))
         {
-            FLLFDevice Device = CreateDeviceFromSource(SourceGuid, Client);
-            iPhones.Add(Device);
+            TArray<FName> SubjectNames = GetAllSubjectNamesFromGUID(SourceGuid, Client);
+            
+            for (const FName& SubjectName : SubjectNames)
+            {
+                FLLFDevice Device = CreateDeviceFromSource(SourceGuid, SubjectName, Client);
+                iPhones.Add(Device);
+            }
         }
     }
     
-    UE_LOG(LogTemp, Log, TEXT("Found %d iPhone Live Link sources"), iPhones.Num());
     return iPhones;
 }
 
@@ -79,37 +87,24 @@ bool ULLFSourceDiscovery::IsIPhoneSource(const FGuid& SourceGuid, ILiveLinkClien
     return false;
 }
 
-FLLFDevice ULLFSourceDiscovery::CreateDeviceFromSource(const FGuid& SourceGuid, ILiveLinkClient* Client)
+FLLFDevice ULLFSourceDiscovery::CreateDeviceFromSource(const FGuid& SourceGuid, FName SubjectName, ILiveLinkClient* Client)
 {
     FLLFDevice Device;
     
     if (!Client)
         return Device;
     
-    // Get source machine name (may contain device info)
-    FText MachineName = Client->GetSourceMachineName(SourceGuid);
-    FString MachineNameStr = MachineName.ToString();
+    // Store the subject name (passed as parameter)
+    Device.SubjectName = SubjectName.ToString();
     
-    // Get source type for additional info
-    FText SourceType = Client->GetSourceType(SourceGuid);
+    // Create unique DeviceID from source GUID + subject name
+    Device.DeviceID = FName(*FString::Printf(TEXT("%s_%s"), 
+        *SourceGuid.ToString(EGuidFormats::Short), 
+        *SubjectName.ToString()));
     
-    // Try to parse device info
-    FString DeviceName, DeviceID;
-    if (ParseIPhoneSourceInfo(MachineNameStr, DeviceName, DeviceID))
-    {
-        Device.DeviceName = DeviceName;
-        Device.DeviceID = FName(*DeviceID);
-    }
-    else
-    {
-        // Fallback: use source GUID as ID
-        Device.DeviceID = FName(*SourceGuid.ToString());
-        Device.DeviceName = MachineNameStr.IsEmpty() ? SourceType.ToString() : MachineNameStr;
-    }
-    
-    // Check if source is currently connected
     Device.bIsConnected = Client->IsSourceStillValid(SourceGuid);
-    
+    Device.LiveLinkSourceGuid = SourceGuid;
+
     // Try to get IP address from source settings (if available)
     ULiveLinkSourceSettings* Settings = Client->GetSourceSettings(SourceGuid);
     if (Settings)
@@ -122,17 +117,24 @@ FLLFDevice ULLFSourceDiscovery::CreateDeviceFromSource(const FGuid& SourceGuid, 
     return Device;
 }
 
-bool ULLFSourceDiscovery::ParseIPhoneSourceInfo(const FString& SourceName, FString& OutDeviceName, FString& OutDeviceID)
+TArray<FName> ULLFSourceDiscovery::GetAllSubjectNamesFromGUID(const FGuid& SourceGuid, ILiveLinkClient* Client)
 {
-    // Expected patterns:
-    // "John's iPhone" → Name: "John's iPhone", ID: "JohnsiPhone"
-    // "iPhone_12345" → Name: "iPhone", ID: "iPhone_12345"
+    TArray<FName> SubjectNames;
     
-    if (SourceName.IsEmpty())
-        return false;
+    if (!Client)
+        return SubjectNames;
     
-    OutDeviceName = SourceName;
-    OutDeviceID = SourceName.Replace(TEXT(" "), TEXT("")).Replace(TEXT("'"), TEXT(""));
+    // Get all subjects (enabled and disabled)
+    TArray<FLiveLinkSubjectKey> AllSubjects = Client->GetSubjects(true, true);
     
-    return true;
+    // Filter subjects that belong to this source
+    for (const FLiveLinkSubjectKey& SubjectKey : AllSubjects)
+    {
+        if (SubjectKey.Source == SourceGuid)
+        {
+            SubjectNames.Add(SubjectKey.SubjectName.Name);
+        }
+    }
+    
+    return SubjectNames;
 }
