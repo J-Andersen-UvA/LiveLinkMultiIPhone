@@ -31,7 +31,7 @@ void ULLFConnectionManager::DiscoverAndRegisterIPhones()
     }
     }
 
-void ULLFConnectionManager::ActivateLiveLinkSubjectForDevice(const FLLFDevice& Device)
+void ULLFConnectionManager::ActivateLiveLinkSubjectForDevice(FLLFDevice Device)
 {
     ILiveLinkClient* Client = SourceDiscovery->GetLiveLinkClient(); // Need to make this public
     if (Client && Device.LiveLinkSourceGuid.IsValid())
@@ -49,7 +49,7 @@ void ULLFConnectionManager::ActivateLiveLinkSubjectForDevice(const FLLFDevice& D
     }
 }
 
-void ULLFConnectionManager::DeactivateLiveLinkSubjectForDevice(const FLLFDevice& Device)
+void ULLFConnectionManager::DeactivateLiveLinkSubjectForDevice(FLLFDevice Device)
 {
     ILiveLinkClient* Client = SourceDiscovery->GetLiveLinkClient(); // Need to make this public
     if (Client && Device.LiveLinkSourceGuid.IsValid())
