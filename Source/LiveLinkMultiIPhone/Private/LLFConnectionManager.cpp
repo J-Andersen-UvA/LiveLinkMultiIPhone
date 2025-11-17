@@ -7,12 +7,12 @@ void ULLFConnectionManager::Initialize()
 {
     if (!DeviceRegistry)
     {
-        DeviceRegistry = NewObject<ULLFDeviceRegistry>(GetTransientPackage());
+        DeviceRegistry = NewObject<ULLFDeviceRegistry>(this);
     }
     
     if (!SourceDiscovery)
     {
-        SourceDiscovery = NewObject<ULLFSourceDiscovery>(GetTransientPackage());
+        SourceDiscovery = NewObject<ULLFSourceDiscovery>(this);
     }
 }
 
@@ -29,30 +29,29 @@ void ULLFConnectionManager::DiscoverAndRegisterIPhones()
     {
         DeviceRegistry->AddDevice(Device);
     }
-    
-    UE_LOG(LogTemp, Log, TEXT("Discovered and registered %d iPhones"), DiscoveredDevices.Num());
-}
+    }
 
-void ULLFConnectionManager::ActivateLiveLinkSubjectForDevice(FLLFDevice Device)
+void ULLFConnectionManager::ActivateLiveLinkSubjectForDevice(const FLLFDevice& Device)
 {
-    ILiveLinkClient* Client = SourceDiscovery->GetLiveLinkClient();
+    ILiveLinkClient* Client = SourceDiscovery->GetLiveLinkClient(); // Need to make this public
     if (Client && Device.LiveLinkSourceGuid.IsValid())
     {
-        // Create subject key from device info
-        FLiveLinkSubjectKey SubjectKey;
-        SubjectKey.Source = Device.LiveLinkSourceGuid;
-        SubjectKey.SubjectName = FLiveLinkSubjectName(FName(*Device.SubjectName));
-        
-        // Enable this specific subject
-        Client->SetSubjectEnabled(SubjectKey, true);
-        UE_LOG(LogTemp, Log, TEXT("Activated subject '%s' for device: %s"), 
-            *Device.SubjectName, *Device.DeviceID.ToString());
+        // Get subjects for this source
+        TArray<FLiveLinkSubjectKey> Subjects = Client->GetSubjects(true, false);
+        for (const FLiveLinkSubjectKey& Subject : Subjects)
+        {
+            if (Subject.Source == Device.LiveLinkSourceGuid)
+            {
+                Client->SetSubjectEnabled(Subject, true);
+                UE_LOG(LogTemp, Log, TEXT("Activated Live Link subject for device: %s"), *Device.DeviceID.ToString());
+            }
+        }
     }
 }
 
-void ULLFConnectionManager::DeactivateLiveLinkSubjectForDevice(FLLFDevice Device)
+void ULLFConnectionManager::DeactivateLiveLinkSubjectForDevice(const FLLFDevice& Device)
 {
-    ILiveLinkClient* Client = SourceDiscovery->GetLiveLinkClient();
+    ILiveLinkClient* Client = SourceDiscovery->GetLiveLinkClient(); // Need to make this public
     if (Client && Device.LiveLinkSourceGuid.IsValid())
     {
         TArray<FLiveLinkSubjectKey> Subjects = Client->GetSubjects(true, false);
