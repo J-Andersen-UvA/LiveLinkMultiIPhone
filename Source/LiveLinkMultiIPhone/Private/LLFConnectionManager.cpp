@@ -1,4 +1,7 @@
 #include "LLFConnectionManager.h"
+#include "Features/IModularFeatures.h"
+#include "ILiveLinkClient.h"
+#include "LiveLinkTypes.h"
 
 void ULLFConnectionManager::Initialize()
 {
@@ -26,6 +29,39 @@ void ULLFConnectionManager::DiscoverAndRegisterIPhones()
     {
         DeviceRegistry->AddDevice(Device);
     }
-    
-    UE_LOG(LogTemp, Log, TEXT("Discovered and registered %d iPhones"), DiscoveredDevices.Num());
+    }
+
+void ULLFConnectionManager::ActivateLiveLinkSubjectForDevice(FLLFDevice Device)
+{
+    ILiveLinkClient* Client = SourceDiscovery->GetLiveLinkClient(); // Need to make this public
+    if (Client && Device.LiveLinkSourceGuid.IsValid())
+    {
+        // Get subjects for this source
+        TArray<FLiveLinkSubjectKey> Subjects = Client->GetSubjects(true, false);
+        for (const FLiveLinkSubjectKey& Subject : Subjects)
+        {
+            if (Subject.Source == Device.LiveLinkSourceGuid)
+            {
+                Client->SetSubjectEnabled(Subject, true);
+                UE_LOG(LogTemp, Log, TEXT("Activated Live Link subject for device: %s"), *Device.DeviceID.ToString());
+            }
+        }
+    }
+}
+
+void ULLFConnectionManager::DeactivateLiveLinkSubjectForDevice(FLLFDevice Device)
+{
+    ILiveLinkClient* Client = SourceDiscovery->GetLiveLinkClient(); // Need to make this public
+    if (Client && Device.LiveLinkSourceGuid.IsValid())
+    {
+        TArray<FLiveLinkSubjectKey> Subjects = Client->GetSubjects(true, false);
+        for (const FLiveLinkSubjectKey& Subject : Subjects)
+        {
+            if (Subject.Source == Device.LiveLinkSourceGuid)
+            {
+                Client->SetSubjectEnabled(Subject, false);
+                UE_LOG(LogTemp, Log, TEXT("Deactivated Live Link subject for device: %s"), *Device.DeviceID.ToString());
+            }
+        }
+    }
 }

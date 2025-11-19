@@ -20,14 +20,11 @@ public:
     UPROPERTY()
     ULLFSourceDiscovery* SourceDiscovery;
     
-    // Initialize subsystems
     void Initialize();
     
-    // Discover and auto-register iPhone sources
     UFUNCTION(BlueprintCallable, Category = "MultiIphoneLiveLink")
     void DiscoverAndRegisterIPhones();
     
-    // Convenience function: Get registry
     UFUNCTION(BlueprintCallable, Category = "MultiIphoneLiveLink")
     ULLFDeviceRegistry* GetDeviceRegistry()
     { 
@@ -41,4 +38,10 @@ public:
         if (!SourceDiscovery) Initialize();
         return SourceDiscovery; 
     }
+
+    UFUNCTION(BlueprintCallable, Category = "MultiIphoneLiveLink")
+    void ActivateLiveLinkSubjectForDevice(FLLFDevice Device);
+
+    UFUNCTION(BlueprintCallable, Category = "MultiIphoneLiveLink")
+    void DeactivateLiveLinkSubjectForDevice(FLLFDevice Device);
 };

@@ -16,14 +16,12 @@ class LIVELINKMULTIIPHONE_API ULLFSourceDiscovery : public UObject
 public:
     // Main discovery function
     TArray<FLLFDevice> GetAvailableIPhones();
+    ILiveLinkClient* GetLiveLinkClient();
 
 private:
-    ILiveLinkClient* GetLiveLinkClient();
-    
     bool IsIPhoneSource(const FGuid& SourceGuid, ILiveLinkClient* Client);
     
     // Convert Live Link source to FLLFDevice
-    FLLFDevice CreateDeviceFromSource(const FGuid& SourceGuid, ILiveLinkClient* Client);
-    
-    bool ParseIPhoneSourceInfo(const FString& SourceName, FString& OutDeviceName, FString& OutDeviceID);
+    FLLFDevice CreateDeviceFromSource(const FGuid& SourceGuid, FName SubjectName, ILiveLinkClient* Client);
+    TArray<FName> GetAllSubjectNamesFromGUID(const FGuid& SourceGuid, ILiveLinkClient* Client);
 };
