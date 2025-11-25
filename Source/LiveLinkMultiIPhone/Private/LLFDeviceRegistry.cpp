@@ -1,3 +1,4 @@
+#include "LLFSourceDiscovery.h"
 #include "LLFDeviceRegistry.h"
 
 void ULLFDeviceRegistry::SetActiveIPhone(FLLFDevice DeviceInfo)
@@ -141,4 +142,17 @@ FLLFDevice ULLFDeviceRegistry::FindDeviceBySubjectName(FString SubjectName)
     }
 
     return FLLFDevice(); // Return default if not found
+}
+
+void ULLFDeviceRegistry::RefreshDevices()
+{
+    ULLFSourceDiscovery* Discovery = NewObject<ULLFSourceDiscovery>(this);
+    if (!Discovery)
+        return;
+
+    TArray<FLLFDevice> FreshList = Discovery->GetAvailableIPhones();
+
+    Devices = FreshList;
+
+    UE_LOG(LogTemp, Log, TEXT("DeviceRegistry: Refreshed, now %d devices."), Devices.Num());
 }

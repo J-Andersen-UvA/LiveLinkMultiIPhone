@@ -53,6 +53,9 @@ public:
     UPROPERTY(BlueprintAssignable, Category = "MultiIphoneLiveLink")
     FOnDeviceDeactivated OnDeviceDeactivated;
 
+    UFUNCTION(BlueprintCallable, Category = "Multi iPhone")
+    void RefreshDevices();
+
     // Functions to set active iPhone
     UFUNCTION(BlueprintCallable, Category = "MultiIphoneLiveLink")
     void SetActiveIPhone(FLLFDevice Device);

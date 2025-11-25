@@ -29,7 +29,7 @@ void ULLFConnectionManager::DiscoverAndRegisterIPhones()
     {
         DeviceRegistry->AddDevice(Device);
     }
-    }
+}
 
 void ULLFConnectionManager::ActivateLiveLinkSubjectForDevice(FLLFDevice Device)
 {
